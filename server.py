@@ -47,19 +47,19 @@ class IssueEventHandler(GithubEventHandler):
         print "Adding file (data = '%s')" % data
         
         # Obtain the current HEAD
-        head_sha = _get_head_commit()
+        head_sha = self._get_head_commit()
 
         # Create a new blob
-        blob_sha = _create_blob("New file created by IssueEventHandler")
+        blob_sha = self._create_blob("New file created by IssueEventHandler")
 
         # Create a new tree
-        tree_sha = _create_tree(head_sha, data, blob_sha)
+        tree_sha = self._create_tree(head_sha, data, blob_sha)
 
         # Create a commit
-        commit_sha = _create_commit(tree_sha, [head_sha])
+        commit_sha = self._create_commit(data, tree_sha, [head_sha])
 
         # Update refs/heads/master
-        if _update_refs_heads_master(commit_sha):
+        if self._update_refs_heads_master(commit_sha):
             print "Successfully created %s in %s" % (data, self.repo)
 
     def remove_file(self, data):
@@ -69,7 +69,7 @@ class IssueEventHandler(GithubEventHandler):
         pass
 
     def _update_refs_heads_master(self, sha):
-        response = _patch_request(self.git_data.refs.heads.master,
+        response = self._patch_request(self.git_data.refs.heads.master,
             {
                 "sha": sha
             })
@@ -77,7 +77,7 @@ class IssueEventHandler(GithubEventHandler):
         return response
 
     def _create_commit(self, path, tree, parents):
-        response = _post_request(self.git_data.commits,
+        response = self._post_request(self.git_data.commits,
             {
                 "message": "Add %s" % path,
                 "tree": tree,
@@ -87,7 +87,7 @@ class IssueEventHandler(GithubEventHandler):
         return response["sha"]
 
     def _create_tree(self, base_tree, path, sha):
-        response = _post_request(self.git_data.trees,
+        response = self._post_request(self.git_data.trees,
             {
                 "base_tree": base_tree, 
                 "tree": [{
@@ -101,7 +101,7 @@ class IssueEventHandler(GithubEventHandler):
         return response["sha"]
 
     def _create_blob(self, content):
-        response = _post_request(self.git_data.blobs,
+        response = self._post_request(self.git_data.blobs,
             {
                 "content": content,
                 "encoding": "utf-8"
@@ -110,14 +110,17 @@ class IssueEventHandler(GithubEventHandler):
         return response["sha"]
 
     def _get_head_commit(self):
-        response = _get_request(self.git_data.refs.heads.master)
+        response = self._get_request(self.git_data.refs.heads.master)
 
         return response["object"]["sha"]
 
     def _get_request(self, endpoint):
         status, response = endpoint.get()
 
-        if status == 200:
+        # Reset the partial
+        self.git_data = self.github.repos[self.username][self.repo].git
+
+        if 200 <= status < 300:
             return response
         else:
             print "_get_request: failed (%d)" % status
@@ -128,22 +131,28 @@ class IssueEventHandler(GithubEventHandler):
     def _post_request(self, endpoint, payload):
         status, response = endpoint.post(body=payload)
 
-        if status == 200:
+        # Reset the partial
+        self.git_data = self.github.repos[self.username][self.repo].git
+
+        if 200 <= status < 300:
             return response
         else:
-            print "_post_request: failed (%d)" % status
-            print "_post_request: response = \n%s", response
+            print "_post_request: call to endpoint '%s' failed (%d)" % (endpoint, status)
+            print "_post_request: response = \n%s" % response
 
             return None
 
     def _patch_request(self, endpoint, payload):
         status, response = endpoint.patch(body=payload)
 
-        if status == 200:
+        # Reset the partial
+        self.git_data = self.github.repos[self.username][self.repo].git
+
+        if 200 <= status < 300:
             return response
         else:
             print "_post_request: failed (%d)" % status
-            print "_post_request: response = \n%s", response
+            print "_post_request: response = \n%s" % response
 
             return None
  
