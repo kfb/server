@@ -9,11 +9,6 @@ class PullRequestHandler:
         print event
  
 class Handler(BaseHTTPRequestHandler):
-    def __init__(self, event_handler):
-        super(self)
-
-        self.event_handler = event_handler
-
     def _set_headers(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
@@ -23,7 +18,7 @@ class Handler(BaseHTTPRequestHandler):
         self._set_headers()
 
         if self.headers["X-GitHub-Event"] == "pull_request":
-            self.event_handler.handle(self.rfile.read(int(self.headers["Content-Length"])))
+            PullRequestHandler().handle(self.rfile.read(int(self.headers["Content-Length"])))
         
 if __name__ == "__main__":
     try:
