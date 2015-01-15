@@ -11,7 +11,7 @@ class Handler(BaseHTTPRequestHandler):
         self._set_headers()
         
         print self.headers
-        print self.rfile.read(self.headers["Content-Length"])
+        print self.rfile.read(int(self.headers["Content-Length"]))
         
 def main():
     httpd = HTTPServer(('', 8080), Handler)
