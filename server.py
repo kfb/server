@@ -13,9 +13,9 @@ class Handler(BaseHTTPRequestHandler):
         print self.headers
         print self.rfile.read(int(self.headers["Content-Length"]))
         
-def main():
-    httpd = HTTPServer(('', 8080), Handler)
-    httpd.serve_forever()
- 
 if __name__ == "__main__":
-    main()
+    try:
+        httpd = HTTPServer(('', 8080), Handler)
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        httpd.socket.close()
