@@ -34,7 +34,6 @@ class IssueEventHandler(GithubEventHandler):
 
             operations = {
                 "add": self.add_file,
-                "del": self.remove_file,
                 "update": self.update_file,
             }
 
@@ -61,9 +60,6 @@ class IssueEventHandler(GithubEventHandler):
         # Update refs/heads/master
         if self._update_refs_heads_master(commit_sha):
             print "Successfully created %s in %s" % (data, self.repo)
-
-    def remove_file(self, data):
-        pass
 
     def update_file(self, data):
         pass
