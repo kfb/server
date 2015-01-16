@@ -42,14 +42,14 @@ class IssueEventHandler(GithubEventHandler):
             else:
                 print "Couldn't understand title: '%'" % title
 
-    def add_file(self, data):
-        print "Adding file (data = '%s')" % data
+    def add_file(self, data, content="New file created by IssueEventHandler"):
+        print "Adding file (data = '%s', content = '%s')" % (data, content)
         
         # Obtain the current HEAD
         head_sha = self._get_head_commit()
 
         # Create a new blob
-        blob_sha = self._create_blob("New file created by IssueEventHandler")
+        blob_sha = self._create_blob(content)
 
         # Create a new tree
         tree_sha = self._create_tree(head_sha, data, blob_sha)
@@ -62,7 +62,13 @@ class IssueEventHandler(GithubEventHandler):
             print "Successfully created %s in %s" % (data, self.repo)
 
     def update_file(self, data):
-        pass
+        print "Updating file (data = '%s')" % data
+
+        # Split the data into a filename and content pair
+        name, content = data.split()
+
+        # Add a new file with the same name and different content
+        self.add_file(name, content)
 
     def _update_refs_heads_master(self, sha):
         response = self._patch_request(self.git_data.refs.heads.master,
