@@ -55,7 +55,7 @@ class IssueEventHandler(GithubEventHandler):
         tree_sha = self._create_tree(head_sha, data, blob_sha)
 
         # Create a commit
-        commit_sha = self._create_commit(data, tree_sha, [head_sha])
+        commit_sha = self._create_commit(data, tree_sha, [head_sha], "Add %s" % data)
 
         # Update refs/heads/master
         if self._update_refs_heads_master(commit_sha):
@@ -65,10 +65,24 @@ class IssueEventHandler(GithubEventHandler):
         print "Updating file (data = '%s')" % data
 
         # Split the data into a filename and content pair
-        name, content = data.split()
+        name = data.split()[0]
+        content = ' '.join(data.split()[1:])
 
-        # Add a new file with the same name and different content
-        self.add_file(name, content)
+        # Obtain the current HEAD
+        head_sha = self._get_head_commit()
+
+        # Create a new blob
+        blob_sha = self._create_blob(content)
+
+        # Create a new tree
+        tree_sha = self._create_tree(head_sha, data, blob_sha)
+
+        # Create a commit
+        commit_sha = self._create_commit(data, tree_sha, [head_sha], "Updated content of %s" % name)
+
+        # Update refs/heads/master
+        if self._update_refs_heads_master(commit_sha):
+            print "Successfully updated %s in %s" % (data, self.repo)
 
     def _update_refs_heads_master(self, sha):
         response = self._patch_request(self.git_data.refs.heads.master,
@@ -78,10 +92,10 @@ class IssueEventHandler(GithubEventHandler):
 
         return response
 
-    def _create_commit(self, path, tree, parents):
+    def _create_commit(self, path, tree, parents, message):
         response = self._post_request(self.git_data.commits,
             {
-                "message": "Add %s" % path,
+                "message": message,
                 "tree": tree,
                 "parents": parents
             })
