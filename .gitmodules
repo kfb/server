@@ -1,0 +1,3 @@
+[submodule "agithub"]
+	path = agithub
+	url = git://github.com/kfb/agithub

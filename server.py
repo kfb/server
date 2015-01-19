@@ -4,7 +4,7 @@ import json
 import getpass
 import sys
 
-from agithub import Github
+from agithub.agithub import Github
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
 class GithubEventHandler:
