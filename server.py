@@ -75,14 +75,14 @@ class IssueEventHandler(GithubEventHandler):
         blob_sha = self._create_blob(content)
 
         # Create a new tree
-        tree_sha = self._create_tree(head_sha, data, blob_sha)
+        tree_sha = self._create_tree(head_sha, name, blob_sha)
 
         # Create a commit
-        commit_sha = self._create_commit(data, tree_sha, [head_sha], "Updated content of %s" % name)
+        commit_sha = self._create_commit(name, tree_sha, [head_sha], "Updated content of %s" % name)
 
         # Update refs/heads/master
         if self._update_refs_heads_master(commit_sha):
-            print "Successfully updated %s in %s" % (data, self.repo)
+            print "Successfully updated %s in %s" % (name, self.repo)
 
     def _update_refs_heads_master(self, sha):
         response = self._patch_request(self.git_data.refs.heads.master,
